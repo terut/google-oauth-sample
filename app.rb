@@ -38,13 +38,7 @@ class App < Sinatra::Base
       grant_type: "authorization_code"
     }
 
-    p q
-
-    conn = Faraday.new(url: "https://accounts.google.com") do |builder|
-      builder.request  :url_encoded
-      builder.response :logger
-      builder.adapter  :net_http
-    end
+    conn = connection("https://accounts.google.com")
 
     res = conn.post "/o/oauth2/token", q
     auth = JSON.parse(res.body) 
@@ -62,11 +56,7 @@ class App < Sinatra::Base
       grant_type: "refresh_token"
     }
 
-    conn = Faraday.new(url: "https://accounts.google.com") do |builder|
-      builder.request  :url_encoded
-      builder.response :logger
-      builder.adapter  :net_http
-    end
+    conn = connection("https://accounts.google.com")
 
     res = conn.post "/o/oauth2/token", q
     auth = JSON.parse(res.body) 
@@ -77,11 +67,7 @@ class App < Sinatra::Base
   end
 
   get '/analytics' do
-    conn = Faraday.new(url: "https://www.googleapis.com") do |builder|
-      builder.request  :url_encoded
-      builder.response :logger
-      builder.adapter  :net_http
-    end
+    conn = connection("https://www.googleapis.com")
 
     params = {
       "ids" => "ga:777",
@@ -100,5 +86,14 @@ class App < Sinatra::Base
     @data = JSON.parse(res.body)
 
     haml :analytics
+  end
+
+  private
+  def connection(url)
+    conn = Faraday.new(url: url) do |builder|
+      builder.request  :url_encoded
+      builder.response :logger
+      builder.adapter  :net_http
+    end
   end
 end
