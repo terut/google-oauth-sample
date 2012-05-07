@@ -2,11 +2,13 @@ require 'faraday'
 require 'json'
 class App < Sinatra::Base
 
+  # Edit client_id, client_secret, sample_ga.
   CONFIG = {
     client_id: "foo",
     client_secret: "bar",
     scope: "https://www.googleapis.com/auth/analytics.readonly",
-    redirect_url: "http://localhost:9292/callback"
+    redirect_url: "http://localhost:9292/callback",
+    sample_ga: "ga:777"
   }
 
   get "/" do
@@ -20,7 +22,7 @@ class App < Sinatra::Base
       "client_id=#{CONFIG[:client_id]}",
       "redirect_uri=#{CONFIG[:redirect_url]}",
       "scope=#{CONFIG[:scope]}",
-      #"approval_prompt=force",
+      "approval_prompt=force",
       "access_type=offline"
     ]
 
@@ -49,8 +51,9 @@ class App < Sinatra::Base
   end
 
   get "/refresh" do
+    auth = session[:auth]
     q = {
-      refresh_token: "aaa",
+      refresh_token: auth["refresh_token"],
       client_id: CONFIG[:client_id],
       client_secret: CONFIG[:client_secret],
       grant_type: "refresh_token"
@@ -70,7 +73,7 @@ class App < Sinatra::Base
     conn = connection("https://www.googleapis.com")
 
     params = {
-      "ids" => "ga:777",
+      "ids" => CONFIG[:sample_ga],
       "metrics" => "ga:visits,ga:bounces",
       "start-date" => "2010-03-26",
       "end-date" => "2012-04-26",
